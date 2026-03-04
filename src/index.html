@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Access Booking Training Quiz</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- Brand header -->
+    <header class="brand-header">
+      <img
+        class="brand-logo"
+        src="https://hotelco51.com/wp-content/uploads/2024/08/cropped-Hotel_Co_51.png"
+        alt="Hotel Co 51"
+      />
+      <p class="brand-kicker">Welcome to the Hotel Co 51 Quiz</p>
+    </header>
+
+    <h1>Access Booking Training Quiz</h1>
+
+    <!-- LOGIN -->
+    <section id="login" class="card">
+      <form id="loginForm" autocomplete="on">
+        <div>
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" required />
+        </div>
+
+        <div>
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" required />
+        </div>
+
+        <div id="loginError" aria-live="polite"></div>
+
+        <button id="nextBtn" type="submit">Start quiz</button>
+      </form>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="card hidden">
+      <div class="meta">
+        <div id="progress">Question 1 of 10</div>
+        <div id="score">Score: 0</div>
+      </div>
+
+      <div id="welcome"></div>
+      <div id="question"></div>
+      <div id="choices"></div>
+      <div id="feedback"></div>
+
+      <button id="nextBtn" type="button" disabled>Next</button>
+    </section>
+
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
