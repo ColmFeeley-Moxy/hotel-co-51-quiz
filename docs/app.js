@@ -1,4 +1,3 @@
-// --- DOM ---
 const loginSection = document.getElementById("login");
 const quizSection = document.getElementById("quiz");
 
@@ -15,18 +14,28 @@ const nextBtn = document.getElementById("nextBtn");
 const progressEl = document.getElementById("progress");
 const scoreEl = document.getElementById("score");
 
-// Defensive: if any key element is missing, fail loudly
-if (!loginSection || !quizSection || !loginForm || !nameInput || !emailInput || !loginError ||
-    !welcomeEl || !questionEl || !choicesEl || !feedbackEl || !nextBtn || !progressEl || !scoreEl) {
+if (
+  !loginSection ||
+  !quizSection ||
+  !loginForm ||
+  !nameInput ||
+  !emailInput ||
+  !loginError ||
+  !welcomeEl ||
+  !questionEl ||
+  !choicesEl ||
+  !feedbackEl ||
+  !nextBtn ||
+  !progressEl ||
+  !scoreEl
+) {
   throw new Error("Quiz app failed to initialise: a required DOM element is missing.");
 }
 
-// --- CONFIG ---
 const API_BASE_URL = "https://zp13fu2v8g.execute-api.eu-west-2.amazonaws.com";
 const SAVE_RESULTS_URL = `${API_BASE_URL}/results`;
 const QUIZ_VERSION = "accessbookings_v1";
 
-// --- QUIZ DATA ---
 const quiz = [
   {
     question: "Which Marriott brand is known for bold, playful and social hotel spaces?",
@@ -83,17 +92,12 @@ const quiz = [
   },
 ];
 
-// --- STATE ---
 let user = null;
 let currentIndex = 0;
 let score = 0;
-
-// This holds the *exact* shuffled question currently on screen
 let activeQuestion = null;
-// This prevents double-answering
 let answeredThisQuestion = false;
 
-// --- HELPER: shuffle answers (keeps correct answer correct) ---
 function shuffleAnswers(question) {
   const answers = question.choices.map((text, index) => ({
     text,
@@ -108,10 +112,13 @@ function shuffleAnswers(question) {
   const newChoices = answers.map((a) => a.text);
   const newCorrectIndex = answers.findIndex((a) => a.isCorrect);
 
-  return { ...question, choices: newChoices, correctIndex: newCorrectIndex };
+  return {
+    ...question,
+    choices: newChoices,
+    correctIndex: newCorrectIndex,
+  };
 }
 
-// --- HELPERS ---
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -170,7 +177,9 @@ function handleChoice(selectedIndex) {
     score += 1;
     feedbackEl.textContent = "✅ Correct!";
   } else {
-    if (buttons[selectedIndex]) buttons[selectedIndex].classList.add("wrong");
+    if (buttons[selectedIndex]) {
+      buttons[selectedIndex].classList.add("wrong");
+    }
     feedbackEl.textContent = `❌ Correct answer: ${q.choices[q.correctIndex]}`;
   }
 
@@ -182,13 +191,15 @@ async function saveResultToAWS() {
   const payload = {
     name: user.name,
     email: user.email,
-    score: score,
+    score,
     quizVersion: QUIZ_VERSION,
   };
 
   const res = await fetch(SAVE_RESULTS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
 
@@ -202,7 +213,9 @@ async function saveResultToAWS() {
   }
 
   const data = await res.json().catch(() => ({}));
-  if (!data.success) throw new Error("Save failed (success=false).");
+  if (!data.success) {
+    throw new Error("Save failed (success=false).");
+  }
 
   return { status: "saved" };
 }
@@ -243,6 +256,8 @@ async function renderResultsAndSave() {
 function startQuiz() {
   currentIndex = 0;
   score = 0;
+  activeQuestion = null;
+  answeredThisQuestion = false;
 
   welcomeEl.textContent = `Welcome, ${user.name}`;
 
@@ -250,7 +265,6 @@ function startQuiz() {
   renderQuestion();
 }
 
-// --- EVENTS ---
 loginForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -275,7 +289,6 @@ loginForm.addEventListener("submit", (e) => {
   startQuiz();
 });
 
-// IMPORTANT: proceed based on button state, not a fragile flag
 nextBtn.addEventListener("click", () => {
   if (nextBtn.disabled) return;
 
@@ -288,5 +301,4 @@ nextBtn.addEventListener("click", () => {
   renderQuestion();
 });
 
-// --- BOOT ---
 setScreen("login");
