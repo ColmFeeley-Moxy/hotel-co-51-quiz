@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hotel Co 51 Quiz</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 
 <body>
-
   <div class="floating">
-    <img src="assets/HC51circelblue.png" class="float blue" alt="">
-    <img src="assets/HC51circlegreen.png" class="float green" alt="">
-    <img src="assets/HC51dots.png" class="float dots" alt="">
-    <img src="assets/HC51orangeslash.png" class="float slash" alt="">
+    <img src="assets/HC51circelblue.png" class="float blue" alt="" />
+    <img src="assets/HC51circlegreen.png" class="float green" alt="" />
+    <img src="assets/HC51dots.png" class="float dots" alt="" />
+    <img src="assets/HC51orangeslash.png" class="float slash" alt="" />
   </div>
 
   <main class="container">
@@ -22,24 +20,42 @@
       class="logo"
       src="https://hotelco51.com/wp-content/uploads/2024/08/cropped-Hotel_Co_51.png"
       alt="Hotel Co 51"
-    >
+    />
 
     <h2 class="subtitle">Hotel Co 51 Quiz</h2>
     <h1 class="title">Let's Get Quizzical</h1>
 
-    <div class="card">
-      <form id="loginForm">
-        <label>Full Name</label>
-        <input type="text" required>
+    <!-- LOGIN -->
+    <section id="login" class="card">
+      <form id="loginForm" autocomplete="on">
+        <label for="name">Full Name</label>
+        <input id="name" type="text" required />
 
-        <label>Email</label>
-        <input type="email" required>
+        <label for="email">Email</label>
+        <input id="email" type="email" required />
 
-        <button class="startBtn">Start Quiz</button>
+        <div id="loginError" aria-live="polite"></div>
+
+        <button type="submit" class="startBtn">Start Quiz</button>
       </form>
-    </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="card hidden">
+      <div class="meta">
+        <div id="progress">Question 1 of 10</div>
+        <div id="score">Score: 0</div>
+      </div>
+
+      <div id="welcome"></div>
+      <div id="question"></div>
+      <div id="choices"></div>
+      <div id="feedback"></div>
+
+      <button id="nextBtn" class="startBtn" type="button" disabled>Next</button>
+    </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
