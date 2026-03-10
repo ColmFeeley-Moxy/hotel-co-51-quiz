@@ -113,16 +113,16 @@ function setScreen(which) {
 
 function getResultMessage(s, total) {
   const pct = s / total;
-  if (pct === 1) return "Perfect score! You're a Hotel Co 51 expert. 🌟";
-  if (pct >= 0.8) return "Excellent work — you clearly know your brands!";
-  if (pct >= 0.6) return "Good effort! A little more time with the portfolio and you'll nail it.";
-  if (pct >= 0.4) return "A decent start — revisit the Hotel Co 51 brand guide to sharpen up.";
+  if (pct === 1)   return "Perfect score! You're a Hotel Co 51 expert. 🌟";
+  if (pct >= 0.8)  return "Excellent work — you clearly know your brands!";
+  if (pct >= 0.6)  return "Good effort! A little more time with the portfolio and you'll nail it.";
+  if (pct >= 0.4)  return "A decent start — revisit the Hotel Co 51 brand guide to sharpen up.";
   return "Worth another look at the brand portfolio before your next booking.";
 }
 
 function getResultEmoji(s, total) {
   const pct = s / total;
-  if (pct === 1) return "🏆";
+  if (pct === 1)  return "🏆";
   if (pct >= 0.8) return "🎉";
   if (pct >= 0.5) return "👍";
   return "💡";
@@ -131,7 +131,7 @@ function getResultEmoji(s, total) {
 // ── Progress ─────────────────────────────────────────────
 
 function updateProgress() {
-  const pct = ((currentIndex) / quiz.length) * 100;
+  const pct = (currentIndex / quiz.length) * 100;
   progressFill.style.width = `${Math.max(pct, 5)}%`;
   progressEl.textContent = `Question ${currentIndex + 1} of ${quiz.length}`;
   scoreEl.textContent = `Score: ${score}`;
@@ -139,7 +139,7 @@ function updateProgress() {
 
 function popScore() {
   scoreEl.classList.remove("pop");
-  void scoreEl.offsetWidth; // reflow to restart animation
+  void scoreEl.offsetWidth;
   scoreEl.classList.add("pop");
   setTimeout(() => scoreEl.classList.remove("pop"), 300);
 }
@@ -159,7 +159,6 @@ function renderQuestion() {
   questionEl.textContent = activeQuestion.question;
   choicesEl.innerHTML = "";
 
-  // Animate question in
   questionWrap.style.animation = "none";
   void questionWrap.offsetWidth;
   questionWrap.style.animation = "";
@@ -225,7 +224,6 @@ async function saveResultToAWS() {
 }
 
 async function showResults() {
-  // Fill results screen
   document.getElementById("resultsIcon").textContent = getResultEmoji(score, quiz.length);
   document.getElementById("resultsTitle").textContent = "Quiz Complete!";
   document.getElementById("resultsSubtitle").textContent = `Well done, ${user.name}!`;
@@ -233,7 +231,6 @@ async function showResults() {
   document.getElementById("resultsScoreDenom").textContent = `/ ${quiz.length}`;
   document.getElementById("resultsMsg").textContent = getResultMessage(score, quiz.length);
 
-  // Fill progress bar
   progressFill.style.width = "100%";
 
   setScreen("results");
@@ -278,7 +275,7 @@ loginForm.addEventListener("submit", (e) => {
   const name = nameInput.value.trim();
   const email = emailInput.value.trim().toLowerCase();
 
-  const nameOk = validateField(nameInput, nameError, name.length >= 2, "Please enter your full name.");
+  const nameOk  = validateField(nameInput,  nameError,  name.length >= 2,    "Please enter your full name.");
   const emailOk = validateField(emailInput, emailError, isValidEmail(email), "Please enter a valid email address.");
 
   if (!nameOk || !emailOk) return;
@@ -288,12 +285,12 @@ loginForm.addEventListener("submit", (e) => {
   startQuiz();
 });
 
-// Inline validation on blur
 nameInput.addEventListener("blur", () => {
   if (nameInput.value.trim()) {
     validateField(nameInput, nameError, nameInput.value.trim().length >= 2, "Please enter your full name.");
   }
 });
+
 emailInput.addEventListener("blur", () => {
   if (emailInput.value.trim()) {
     validateField(emailInput, emailError, isValidEmail(emailInput.value.trim()), "Please enter a valid email address.");
@@ -304,12 +301,10 @@ emailInput.addEventListener("blur", () => {
 
 nextBtn.addEventListener("click", () => {
   if (nextBtn.disabled) return;
-
   if (currentIndex === quiz.length - 1) {
     showResults();
     return;
   }
-
   currentIndex += 1;
   renderQuestion();
 });
@@ -327,3 +322,189 @@ function startQuiz() {
 }
 
 setScreen("login");
+
+// ── Floating image physics ────────────────────────────────
+
+(function initFloatingPhysics() {
+
+  const configs = [
+    { selector: ".blue",  renderSize: 220, shape: "circle", rotates: false },
+    { selector: ".green", renderSize: 200, shape: "circle", rotates: false },
+    { selector: ".dots",  renderSize: 155, shape: "box",    rotates: false },
+    { selector: ".slash", renderSize: 460, shape: "box",    rotates: true  },
+  ];
+
+  const floats = configs.map(c => ({
+    ...c,
+    el: document.querySelector(c.selector),
+    x: 0, y: 0,
+    dx: 0, dy: 0,
+    w: 0, h: 0,
+    radius: 0,
+    angle: 0,
+    dAngle: 0,
+  }));
+
+  function init() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    floats.forEach((f, i) => {
+      const rect = f.el.getBoundingClientRect();
+      f.w = rect.width  || f.renderSize;
+      f.h = rect.height || f.renderSize;
+      f.radius = Math.min(f.w, f.h) / 2;
+
+      f.x = (vw * 0.15) + (i / floats.length) * (vw * 0.7);
+      f.y = (vh * 0.1)  + Math.random() * (vh * 0.7);
+
+      const speed = 0.45 + Math.random() * 0.45;
+      const angle = (Math.PI * 2 / floats.length) * i + Math.random() * 0.8;
+      f.dx = Math.cos(angle) * speed;
+      f.dy = Math.sin(angle) * speed;
+
+      f.angle  = Math.random() * 360;
+      f.dAngle = f.rotates ? (0.06 + Math.random() * 0.06) : 0;
+    });
+  }
+
+  function resolveCircleCircle(a, b) {
+    const ax = a.x + a.w / 2;
+    const ay = a.y + a.h / 2;
+    const bx = b.x + b.w / 2;
+    const by = b.y + b.h / 2;
+
+    const distX = bx - ax;
+    const distY = by - ay;
+    const dist  = Math.sqrt(distX * distX + distY * distY);
+    const minDist = a.radius + b.radius;
+
+    if (dist < minDist && dist > 0) {
+      const nx = distX / dist;
+      const ny = distY / dist;
+      const dvx = a.dx - b.dx;
+      const dvy = a.dy - b.dy;
+      const dot = dvx * nx + dvy * ny;
+
+      if (dot > 0) {
+        a.dx -= dot * nx;
+        a.dy -= dot * ny;
+        b.dx += dot * nx;
+        b.dy += dot * ny;
+      }
+
+      const overlap = (minDist - dist) / 2 + 0.5;
+      a.x -= nx * overlap;
+      a.y -= ny * overlap;
+      b.x += nx * overlap;
+      b.y += ny * overlap;
+    }
+  }
+
+  function resolveBoxBox(a, b) {
+    const overlapX = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    const overlapY = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+
+    if (overlapX > 0 && overlapY > 0) {
+      if (overlapX < overlapY) {
+        const temp = a.dx; a.dx = b.dx; b.dx = temp;
+        const nudge = overlapX / 2 + 1;
+        if (a.x < b.x) { a.x -= nudge; b.x += nudge; }
+        else            { a.x += nudge; b.x -= nudge; }
+      } else {
+        const temp = a.dy; a.dy = b.dy; b.dy = temp;
+        const nudge = overlapY / 2 + 1;
+        if (a.y < b.y) { a.y -= nudge; b.y += nudge; }
+        else            { a.y += nudge; b.y -= nudge; }
+      }
+    }
+  }
+
+  function resolveCircleBox(circle, box) {
+    const cx = circle.x + circle.w / 2;
+    const cy = circle.y + circle.h / 2;
+    const closestX = Math.max(box.x, Math.min(cx, box.x + box.w));
+    const closestY = Math.max(box.y, Math.min(cy, box.y + box.h));
+
+    const distX = cx - closestX;
+    const distY = cy - closestY;
+    const dist  = Math.sqrt(distX * distX + distY * distY);
+
+    if (dist < circle.radius && dist > 0) {
+      const nx = distX / dist;
+      const ny = distY / dist;
+      const dvx = circle.dx - box.dx;
+      const dvy = circle.dy - box.dy;
+      const dot = dvx * nx + dvy * ny;
+
+      if (dot > 0) {
+        circle.dx -= dot * nx;
+        circle.dy -= dot * ny;
+        box.dx    += dot * nx;
+        box.dy    += dot * ny;
+      }
+
+      const overlap = (circle.radius - dist) / 2 + 0.5;
+      circle.x -= nx * overlap;
+      circle.y -= ny * overlap;
+      box.x    += nx * overlap;
+      box.y    += ny * overlap;
+    }
+  }
+
+  function resolveCollision(a, b) {
+    if (a.shape === "circle" && b.shape === "circle") {
+      resolveCircleCircle(a, b);
+    } else if (a.shape === "box" && b.shape === "box") {
+      resolveBoxBox(a, b);
+    } else {
+      const circle = a.shape === "circle" ? a : b;
+      const box    = a.shape === "circle" ? b : a;
+      resolveCircleBox(circle, box);
+    }
+  }
+
+  function tick() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    floats.forEach(f => {
+      f.x += f.dx;
+      f.y += f.dy;
+      f.angle += f.dAngle;
+
+      if (f.x <= 0)        { f.x = 0;        f.dx =  Math.abs(f.dx); }
+      if (f.x + f.w >= vw) { f.x = vw - f.w; f.dx = -Math.abs(f.dx); }
+      if (f.y <= 0)        { f.y = 0;        f.dy =  Math.abs(f.dy); }
+      if (f.y + f.h >= vh) { f.y = vh - f.h; f.dy = -Math.abs(f.dy); }
+    });
+
+    for (let i = 0; i < floats.length; i++) {
+      for (let j = i + 1; j < floats.length; j++) {
+        resolveCollision(floats[i], floats[j]);
+      }
+    }
+
+    floats.forEach(f => {
+      f.el.style.left      = `${f.x}px`;
+      f.el.style.top       = `${f.y}px`;
+      f.el.style.right     = "auto";
+      f.el.style.bottom    = "auto";
+      f.el.style.transform = f.rotates ? `rotate(${f.angle}deg)` : "none";
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  setTimeout(() => {
+    init();
+    requestAnimationFrame(tick);
+  }, 150);
+
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(init, 200);
+  });
+
+})();
