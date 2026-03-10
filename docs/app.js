@@ -328,102 +328,66 @@ setScreen("login");
   const canvas = document.getElementById("auroraCanvas");
   const ctx = canvas.getContext("2d");
 
-  // Brand colour palette — warm oranges, soft greens, muted blues, dusty pinks
-  const brandColours = [
-    "#DE9941", // orange
-    "#EBB677", // light orange
-    "#F3CB98", // cream
-    "#A0CB6E", // green
-    "#BAD797", // light green
-    "#AFD385", // mid green
-    "#6974B5", // blue
-    "#848EC2", // mid blue
-    "#A1A6CD", // light blue
-    "#C66678", // pink
-    "#D39EAA", // light pink
-    "#CA8291", // mid pink
+  const blobs = [
+    { r: 0, rgb: { r: 105, g: 116, b: 181 }, op: 0.55, dx:  0.30, dy:  0.20 }, // blue
+    { r: 0, rgb: { r: 160, g: 203, b: 110 }, op: 0.50, dx: -0.20, dy:  0.30 }, // green
+    { r: 0, rgb: { r: 198, g: 102, b: 120 }, op: 0.45, dx: -0.30, dy: -0.20 }, // pink
+    { r: 0, rgb: { r: 132, g: 142, b: 194 }, op: 0.50, dx:  0.25, dy: -0.25 }, // mid blue
+    { r: 0, rgb: { r: 175, g: 211, b: 133 }, op: 0.45, dx: -0.20, dy:  0.20 }, // light green
+    { r: 0, rgb: { r: 211, g: 158, b: 170 }, op: 0.40, dx:  0.15, dy:  0.30 }, // light pink
+    { r: 0, rgb: { r: 222, g: 153, b:  65 }, op: 0.35, dx:  0.20, dy: -0.20 }, // orange accent
   ];
 
-  // Each blob: position, size, colour, drift velocity, phase offset for breathing
-  const BLOB_COUNT = 7;
-  let blobs = [];
-
-  function hexToRgb(hex) {
-    const r = parseInt(hex.slice(1,3), 16);
-    const g = parseInt(hex.slice(3,5), 16);
-    const b = parseInt(hex.slice(5,7), 16);
-    return { r, g, b };
-  }
+  const positions = [
+    [0.14, 0.20], [0.61, 0.14], [0.88, 0.54],
+    [0.27, 0.75], [0.75, 0.79], [0.50, 0.40],
+    [0.10, 0.88],
+  ];
 
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
-  function initBlobs() {
-    blobs = [];
-    for (let i = 0; i < BLOB_COUNT; i++) {
-      const colour = brandColours[Math.floor(Math.random() * brandColours.length)];
-      const rgb = hexToRgb(colour);
-      blobs.push({
-        x:      Math.random() * canvas.width,
-        y:      Math.random() * canvas.height,
-        // Base radius — large soft blobs
-        baseR:  canvas.width * (0.22 + Math.random() * 0.22),
-        // Breathing amplitude
-        breathAmp: canvas.width * (0.04 + Math.random() * 0.06),
-        // Individual drift speeds — very slow
-        dx: (Math.random() - 0.5) * 0.28,
-        dy: (Math.random() - 0.5) * 0.28,
-        // Phase for breathing animation, staggered
-        phase: Math.random() * Math.PI * 2,
-        // Breathing speed
-        breathSpeed: 0.003 + Math.random() * 0.003,
-        r: rgb.r,
-        g: rgb.g,
-        b: rgb.b,
-        // Max opacity — keep translucent so blobs layer beautifully
-        opacity: 0.13 + Math.random() * 0.10,
-      });
-    }
+  function initPositions() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const base = Math.min(vw, vh);
+    blobs.forEach((b, i) => {
+      b.x = vw * positions[i][0];
+      b.y = vh * positions[i][1];
+      b.r = base * (0.38 + i * 0.04);
+    });
   }
 
-  let t = 0;
+  let phase = 0;
 
   function draw() {
-    t++;
+    phase += 0.008;
 
-    // Fill base background colour
     ctx.fillStyle = "#F3CB98";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw each blob as a large radial gradient circle
-    blobs.forEach(blob => {
-      // Breathing: radius pulses gently
-      blob.phase += blob.breathSpeed;
-      const r = blob.baseR + Math.sin(blob.phase) * blob.breathAmp;
+    blobs.forEach((b, i) => {
+      b.x += b.dx;
+      b.y += b.dy;
 
-      // Drift
-      blob.x += blob.dx;
-      blob.y += blob.dy;
+      // Wrap around edges smoothly
+      if (b.x < -b.r)                 b.x = canvas.width  + b.r;
+      if (b.x > canvas.width  + b.r)  b.x = -b.r;
+      if (b.y < -b.r)                 b.y = canvas.height + b.r;
+      if (b.y > canvas.height + b.r)  b.y = -b.r;
 
-      // Soft wrap-around — blobs reappear on the other side rather than bouncing
-      if (blob.x < -r)             blob.x = canvas.width  + r;
-      if (blob.x >  canvas.width  + r) blob.x = -r;
-      if (blob.y < -r)             blob.y = canvas.height + r;
-      if (blob.y >  canvas.height + r) blob.y = -r;
+      // Gentle breathing pulse
+      const pulse = b.r + Math.sin(phase + i * 1.1) * (b.r * 0.08);
 
-      // Radial gradient: colour at centre fading to transparent
-      const grad = ctx.createRadialGradient(
-        blob.x, blob.y, 0,
-        blob.x, blob.y, r
-      );
-      grad.addColorStop(0,   `rgba(${blob.r},${blob.g},${blob.b},${blob.opacity})`);
-      grad.addColorStop(0.5, `rgba(${blob.r},${blob.g},${blob.b},${blob.opacity * 0.5})`);
-      grad.addColorStop(1,   `rgba(${blob.r},${blob.g},${blob.b},0)`);
+      const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, pulse);
+      grad.addColorStop(0,   `rgba(${b.rgb.r},${b.rgb.g},${b.rgb.b},${b.op})`);
+      grad.addColorStop(0.5, `rgba(${b.rgb.r},${b.rgb.g},${b.rgb.b},${b.op * 0.4})`);
+      grad.addColorStop(1,   `rgba(${b.rgb.r},${b.rgb.g},${b.rgb.b},0)`);
 
       ctx.beginPath();
-      ctx.arc(blob.x, blob.y, r, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, pulse, 0, Math.PI * 2);
       ctx.fillStyle = grad;
       ctx.fill();
     });
@@ -432,11 +396,11 @@ setScreen("login");
   }
 
   resize();
-  initBlobs();
+  initPositions();
   draw();
 
   window.addEventListener("resize", () => {
     resize();
-    initBlobs();
+    initPositions();
   });
 })();
